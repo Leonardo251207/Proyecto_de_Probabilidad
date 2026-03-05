@@ -1,69 +1,130 @@
 import streamlit as st
 import pandas as pd
-
-# 1. Importamos nuestras propias piezas
+import base64
 from modulos.procesador import cargar_datos, optimizar_tipos
 from modulos.estadistica import calcular_probabilidades_bayes, evaluar_modelo
 from vistas.componentes import mostrar_sidebar_info, mostrar_metricas_principales, alerta_insight
 from vistas.graficos import grafico_comparativo_bayes, grafico_matriz_confusion
 
 # --- CONFIGURACIÓN DE PÁGINA ---
-st.set_page_config(page_title="Analizador de Bayes Pro", layout="wide")
-st.title("📊 Analizador de Teorema de Bayes")
+st.set_page_config(page_title="Bayes Engine Pro", page_icon="🧬", layout="wide")
 
+# --- FUNCIÓN PARA VIDEO DE FONDO ---
+def añadir_video_fondo(video_file):
+    with open(video_file, "rb") as f:
+        data = f.read()
+        bin_str = base64.b64encode(data).decode()
+    
+    st.markdown(f"""
+        <style>
+        #video-fondo {{
+            position: fixed;
+            right: 0;
+            bottom: 0;
+            min-width: 100%; 
+            min-height: 100%;
+            z-index: -1;
+            filter: brightness(0.5); /* Ajusta la oscuridad del video */
+            object-fit: cover;
+        }}
+        .stApp {{
+            background-color: transparent;
+        }}
+        </style>
+        <video autoplay loop muted playsinline id="video-fondo">
+            <source src="data:video/mp4;base64,{bin_str}" type="video/mp4">
+        </video>
+    """, unsafe_allow_html=True)
+
+# --- APLICAR DISEÑO PREMIUM ---
+def aplicar_diseno_premium():
+    st.markdown("""
+        <style>
+        /* Estilos generales */
+        .stApp { color: #F2F2F2; }
+        [data-testid="stSidebar"] { background-color: rgba(13, 13, 13, 0.5); border-right: 1px solid #3A1F73; }
+        
+        /* Contenedores con efecto de cristal (Glassmorphism) */
+        div[data-testid="stVerticalBlockBorderWrapper"] { 
+            background-color: rgb(22, 22, 22, 0.6) !important; 
+            backdrop-filter: blur(20px);
+            border: 1px solid #3A1F73 !important; 
+            border-radius: 12px; 
+        }
+        
+        /* Botones y Métricas */
+        .stButton>button { background-color: #643DF2 !important; color: white !important; border-radius: 8px; }
+        [data-testid="stMetric"] { 
+            background-color: rgb(26, 26, 26); padding: 20px; border-radius: 10px; border-top: 3px solid #643DF2; 
+        }
+        [data-testid="stMetricValue"] { color: #F27F3D !important; }
+        
+        /* Textos */
+        h1, h2, h3 { color: #643DF2 !important; font-family: 'Inter', sans-serif; }
+        .stMarkdown p { color: #B0B0B0; }
+
+        /* Estilo personalizado para el Cargador de Archivos */
+        [data-testid="stFileUploaderIcon"] { color: #643DF2 !important; }
+        [data-testid="stFileUploaderFileName"] { color: #F27F3D !important; }
+        </style>
+    """, unsafe_allow_html=True)
+
+# Ejecutar funciones de estilo
+añadir_video_fondo("data/fondoo.mp4")
+aplicar_diseno_premium()
+
+# --- HEADER CON ICONO SVG (FIJO) ---
+col_t1, col_t2 = st.columns([3, 1])
+
+with col_t1:
+    st.title(":material/dynamic_form: Analizador de Teorema de Bayes")
 # --- 1. CARGA DE DATOS ---
-archivo = st.file_uploader("Sube tu archivo CSV", type=["csv"])
+with st.container(border=True):
+    st.markdown("### :material/cloud_upload: Centro de Datos")
+    archivo = st.file_uploader("", type=["csv"], label_visibility="collapsed")
 
 if archivo:
-    # Usamos el procesador
     df_raw = cargar_datos(archivo)
-    df, tipos = optimizar_tipos(df_raw)
-    
-    # Usamos componente de UI para la sidebar
+    df_trabajo, tipos = optimizar_tipos(df_raw)
     mostrar_sidebar_info(tipos)
     
-    st.subheader("📋 Vista previa del Dataset")
-    st.dataframe(df.head(10))
-
-    # --- 2. CONFIGURACIÓN DEL EVENTO (A) ---
+    st.markdown("#### :material/database: Dataset Original")
+    df_final = st.data_editor(df_trabajo, use_container_width=True, num_rows="dynamic", key="editor_principal")
+    
+    # --- 2. CONFIGURACIÓN ---
     st.divider()
-    col_interes = st.selectbox("Selecciona la Variable Objetivo (A):", tipos['categoricas'] + tipos['numericas'])
-    
-    opciones = df[col_interes].unique()
-    evento_si = st.selectbox(f"¿Qué valor representa el acierto/fallo?", opciones)
-    
-    # --- 3. ANÁLISIS DE EVIDENCIA (B) ---
-    st.divider()
-    col_evidencia = st.selectbox("Selecciona la Evidencia (B):", tipos['categoricas'] + tipos['numericas'])
-    
-    es_num = col_evidencia in tipos['numericas']
-    valor_ev = None
+    c1, c2 = st.columns(2)
+    with c1:
+        with st.container(border=True):
+            st.markdown(":material/target: **Evento Objetivo (A)**")
+            col_interes = st.selectbox("Variable Objetivo:", tipos['categoricas'] + tipos['numericas'])
+            evento_si = st.selectbox("Valor de éxito:", df_final[col_interes].unique())
+    with c2:
+        with st.container(border=True):
+            st.markdown(":material/search: **Evidencia (B)**")
+            col_evidencia = st.selectbox("Variable de Evidencia:", tipos['categoricas'] + tipos['numericas'])
+            es_num = col_evidencia in tipos['numericas']
+            valor_ev = st.number_input("Umbral:", value=0.0) if es_num else st.selectbox("Valor:", df_final[col_evidencia].unique())
 
-    if es_num:
-        valor_ev = st.number_input(f"Define el umbral para '{col_evidencia}':", value=float(df[col_evidencia].mean()))
-    else:
-        valor_ev = st.selectbox(f"¿Qué valor de '{col_evidencia}' es la evidencia?", df[col_evidencia].unique())
-
-    # --- 4. CÁLCULOS Y LÓGICA ---
-    # Llamamos al motor estadístico
-    res = calcular_probabilidades_bayes(df, col_interes, evento_si, col_evidencia, valor_ev, es_num)
+    # --- 3. CÁLCULOS Y DASHBOARD ---
+    res = calcular_probabilidades_bayes(df_final, col_interes, evento_si, col_evidencia, valor_ev, es_num)
     
-    # --- 5. MOSTRAR RESULTADOS ---
+    st.markdown("---")
     alerta_insight(res['prob_a'])
     mostrar_metricas_principales(res, evento_si)
     
-    # Gráfico de Bayes
-    fig_bayes = grafico_comparativo_bayes(res['prob_a'], res['prob_posterior'], evento_si)
-    st.plotly_chart(fig_bayes, use_container_width=True)
+    with st.container(border=True):
+        st.markdown("#### :material/stacked_line_chart: Cambio en la Probabilidad")
+        fig_bayes = grafico_comparativo_bayes(res['prob_a'], res['prob_posterior'], evento_si)
+        fig_bayes.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color="#F2F2F2")
+        st.plotly_chart(fig_bayes, use_container_width=True)
 
-    # --- 6. EVALUACIÓN ---
-    st.divider()
-    st.header("🏁 Evaluación del Clasificador")
+    # --- 4. EVALUACIÓN ---
+    st.markdown("### :material/verified: Precisión del Modelo")
+    acc, cm = evaluar_modelo(df_final, col_interes, evento_si, col_evidencia, valor_ev, es_num)
     
-    acc, cm = evaluar_modelo(df, col_interes, evento_si, col_evidencia, valor_ev, es_num)
-    
-    col_m1, col_m2 = st.columns(2)
-    col_m1.metric("Exactitud (Accuracy)", f"{acc:.2%}")
-    
-    fig_cm = grafico_matriz_confusion(cm, [evento_si, "Otros"])
-    col_m2.pyplot(fig_cm)
+    m_col1, m_col2 = st.columns([1, 2])
+    m_col1.metric("Precisión del Modelo", f"{acc:.2%}")
+    with m_col2:
+        fig_cm = grafico_matriz_confusion(cm, [f"{evento_si}", "Otros"])
+        st.pyplot(fig_cm)

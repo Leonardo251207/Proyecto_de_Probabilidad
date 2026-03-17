@@ -1,0 +1,136 @@
+/* Configuración General */
+.stApp { 
+    color: #F2F2F2; 
+    background-color: transparent;
+}
+
+/* Video de Fondo */
+#video-fondo {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    min-width: 100%; 
+    min-height: 100%;
+    z-index: -1;
+    filter: brightness(0.5);
+    object-fit: cover;
+}
+
+/* Sidebar */
+[data-testid="stSidebar"] { 
+    background-color: rgba(13, 13, 13, 0.5) !important; 
+    border-right: 1px solid #3A1F73; 
+}
+
+/* Contenedores Glassmorphism */
+div[data-testid="stVerticalBlockBorderWrapper"] { 
+    background-color: rgba(22, 22, 22, 0.8) !important; 
+    backdrop-filter: blur(20px);
+    border: 1px solid #3A1F73 !important; 
+    border-radius: 12px; 
+}
+
+/* Botones y Métricas */
+.stButton>button { 
+    background-color: #643DF2 !important; 
+    color: white !important; 
+    border-radius: 8px; 
+}
+
+[data-testid="stMetric"] { 
+    background-color: rgb(26, 26, 26); 
+    padding: 20px; 
+    border-radius: 10px; 
+    border-top: 3px solid #643DF2; 
+}
+
+[data-testid="stMetricValue"] { 
+    color: #F27F3D !important; 
+}
+
+/* Textos */
+h1, h2, h3 { 
+    color: #643DF2 !important; 
+    font-family: 'Inter', sans-serif; 
+}
+
+.stMarkdown p { 
+    color: #B0B0B0; 
+}
+
+/* Cargador de Archivos */
+[data-testid="stFileUploaderIcon"] { color: #643DF2 !important; }
+[data-testid="stFileUploaderFileName"] { color: #F27F3D !important; }
+
+/* Contenedor principal de la gráfica - ¡MODIFICADO A ESTILO GLASSMORPHISM! */
+.graph-container {
+    background-color: rgba(22, 22, 22, 0.6); /* En lugar de #ffffff */
+    backdrop-filter: blur(10px);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+    border: 1px solid #3A1F73; /* Mismo borde de tu sidebar */
+    transition: transform 0.3s ease;
+    margin: 15px 0;
+}
+
+.graph-container:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6);
+}
+
+/* Estilo específico para los títulos dentro del componente */
+.graph-container h3 {
+    color: #ffffff;
+    font-family: 'Inter', sans-serif; /* Unificado con el resto */
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+/* Forzar la tipografía en Plotly desde CSS por seguridad */
+.js-plotly-plot .plotly text {
+    font-family: 'Inter', sans-serif !important;
+}
+
+/* Forzar el tamaño responsivo */
+.js-plotly-plot {
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+/* --- SPINNER FUTURISTA IA --- */
+.cyber-loader-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 25px;
+}
+.cyber-spinner {
+    width: 45px;
+    height: 45px;
+    border: 3px solid rgba(100, 61, 242, 0.1);
+    border-top-color: #643DF2;
+    border-bottom-color: #F27F3D;
+    border-radius: 50%;
+    animation: spin-cyber 1s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
+    box-shadow: 0 0 15px rgba(100, 61, 242, 0.6);
+}
+.cyber-text {
+    margin-top: 15px;
+    color: #FCFCFC;
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    letter-spacing: 3px;
+    font-weight: 600;
+    text-transform: uppercase;
+    animation: pulse-cyber 1.5s ease-in-out infinite;
+}
+
+@keyframes spin-cyber { 
+    100% { transform: rotate(360deg); } 
+}
+@keyframes pulse-cyber { 
+    50% { opacity: 0.4; text-shadow: 0 0 8px #F27F3D; } 
+}

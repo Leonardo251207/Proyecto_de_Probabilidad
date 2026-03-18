@@ -117,6 +117,13 @@ def grafico_histograma(datos, nombre_variable):
         )
     ])
     
+    # Calculamos el máximo de forma segura
+    try:
+        max_val = max(datos) if len(datos) > 0 else 1
+    except Exception:
+        # Por si falla len() o max() con algún tipo de dato raro
+        max_val = 1
+    
     fig.update_layout(
         title=dict(text=f'Distribución de {nombre_corto}', font=dict(color="#FFFFFF", size=20), pad=dict(b=20)),
         font=dict(family="'Inter', sans-serif", color="#B0B0B0", size=14),
@@ -126,7 +133,7 @@ def grafico_histograma(datos, nombre_variable):
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)',
         margin=dict(l=40, r=40, t=90, b=40),
-        yaxis=dict(showgrid=True, gridcolor='rgba(255,255,255,0.1)', range=[0, max(datos)*1.2 if datos else 1])
+        yaxis=dict(showgrid=True, gridcolor='rgba(255,255,255,0.1)', range=[0, max_val * 1.2])
     )
     return fig
 
